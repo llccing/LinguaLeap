@@ -80,6 +80,14 @@ const Home = () => {
     speechSynthesisRef.current.speak(utterance);
   };
 
+  // Placeholder for AI-powered voice reading
+  const handleAISpeak = async () => {
+    toast({
+      title: 'AI Voice Reading',
+      description: 'This feature is currently a placeholder. Integrating a high-quality AI text-to-speech service requires additional API integration and setup.',
+    });
+  };
+
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -204,9 +212,14 @@ const Home = () => {
       <Card className="mb-6">
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Challenge Article ({selectedLevel})</CardTitle>
-          <Button variant="ghost" size="icon" onClick={handleSpeak} aria-label="Read Article">
-            {isSpeaking ? <Pause/> : <Play/>}
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="icon" onClick={handleSpeak} aria-label="Read Article">
+              {isSpeaking ? <Pause/> : <Play/>}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleAISpeak} aria-label="Read Article with AI">
+              🤖
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <p className="mb-4">{currentArticle?.excerpt}</p>
