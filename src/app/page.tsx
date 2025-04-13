@@ -67,6 +67,9 @@ const Home = () => {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // New state to track media recording status
+  const [isMediaRecording, setIsMediaRecording] = useState(false);
+
   useEffect(() => {
     speechSynthesisRef.current = window.speechSynthesis;
   }, []);
@@ -216,10 +219,12 @@ const Home = () => {
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
         stream.getTracks().forEach(track => track.stop());
+        setIsMediaRecording(false);  // Set recording state to false
       };
 
       recorder.start();
       setIsRecording(true);
+      setIsMediaRecording(true);  // Set recording state to true
     } catch (error) {
       console.error('Error starting media recording:', error);
       toast({
@@ -228,13 +233,15 @@ const Home = () => {
         variant: 'destructive',
       });
       setIsRecording(false);
+      setIsMediaRecording(false);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorder) {
+    if (mediaRecorder && isMediaRecording) {
       mediaRecorder.stop();
       setIsRecording(false);
+      setIsMediaRecording(false);
     }
   };
 
@@ -310,6 +317,8 @@ const Home = () => {
         </CardContent>
       </Card>
 
+      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Input Text Area */}
         <Card>
@@ -336,7 +345,7 @@ const Home = () => {
               </Button>
               {isVoiceInput && (
                 <div className="absolute bottom-2 right-2">
-                  {isRecording ? (
+                  {isMediaRecording ? (
                     <Button
                       variant="destructive"
                       size="icon"
