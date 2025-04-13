@@ -9,9 +9,12 @@ import {Separator} from '@/components/ui/separator';
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Mic, Text, Pause} from 'lucide-react';
 import {useToast} from "@/hooks/use-toast";
-import ActionButtons from "@/app/components/ActionButtons";
 
-const InputAndImprovedText = () => {
+interface InputAndImprovedTextProps {
+  onGrammarCheck: (text: string) => Promise<string | undefined>;
+}
+
+const InputAndImprovedText = ({onGrammarCheck}: InputAndImprovedTextProps) => {
   const [inputText, setInputText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [isVoiceInput, setIsVoiceInput] = useState(false);
@@ -95,10 +98,13 @@ const InputAndImprovedText = () => {
     setInputText(e.target.value);
   };
 
-  const handleGrammarCheck = useCallback(async () => {
-    const result = await grammarAndSpellingCheck({text: inputText});
-    setCorrectedText(result.correctedText);
-  }, [inputText]);
+  const handleCheckGrammar = useCallback(async () => {
+    if (onGrammarCheck) {
+      const corrected = await onGrammarCheck(inputText);
+      setCorrectedText(corrected || '');
+    }
+  }, [inputText, onGrammarCheck]);
+
 
   const handleToggleInputMethod = () => {
     setIsVoiceInput(prev => !prev);
@@ -253,7 +259,9 @@ const InputAndImprovedText = () => {
           </CardContent>
         </Card>
       </div>
-      <ActionButtons inputText={inputText}/>
+      <Button onClick={handleCheckGrammar} style={{backgroundColor: '#008080', color: 'white'}}>
+        Check Grammar
+      </Button>
     </>
   );
 };

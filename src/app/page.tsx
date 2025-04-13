@@ -1,13 +1,26 @@
 'use client';
 
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import ArticleDisplay from './components/ArticleDisplay';
 import PronunciationAssessment from './components/PronunciationAssessment';
 import InputAndImprovedText from './components/InputAndImprovedText';
-import ActionButtons from './components/ActionButtons';
+import FeedbackDisplay from './components/FeedbackDisplay';
 import {Toaster} from "@/components/ui/toaster";
+import {grammarAndSpellingCheck} from "@/ai/flows/grammar-and-spelling-check";
 
 const Home = () => {
+  const [inputText, setInputText] = useState('');
+
+  const grammarCheck = useCallback(async (text: string) => {
+    try {
+      const result = await grammarAndSpellingCheck({text: text});
+      return result.correctedText;
+    } catch (error) {
+      console.error('Grammar check failed:', error);
+      return undefined;
+    }
+  }, []);
+
   return (
     <div className="container mx-auto py-10 px-4">
       <Toaster/>
@@ -20,9 +33,8 @@ const Home = () => {
 
       <PronunciationAssessment/>
 
-      <InputAndImprovedText/>
-
-      <ActionButtons/>
+      <InputAndImprovedText onGrammarCheck={grammarCheck} />
+      <FeedbackDisplay inputText={inputText}/>
     </div>
   );
 };
