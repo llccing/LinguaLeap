@@ -106,7 +106,10 @@ const InputAndImprovedText = () => {
       if (isRecording) {
         recognitionRef.current.stop();
       } else {
-        recognitionRef.current.start();
+        // Check if recognition is already running before starting
+        if (recognitionRef.current.state !== 'running') {
+          recognitionRef.current.start();
+        }
       }
     }
   };
