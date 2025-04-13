@@ -13,7 +13,7 @@ import {Badge} from "@/components/ui/badge";
 import {cn} from "@/lib/utils";
 import {useToast} from "@/hooks/use-toast";
 import {Toaster} from "@/components/ui/toaster";
-import {Mic, Text, Pause} from 'lucide-react';
+import {Mic, Text, Pause, Play} from 'lucide-react';
 
 const cefrLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -54,6 +54,31 @@ const Home = () => {
   const {toast} = useToast();
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [selectedLevel, setSelectedLevel] = useState('B2');
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
+
+  useEffect(() => {
+    speechSynthesisRef.current = window.speechSynthesis;
+  }, []);
+
+  const handleSpeak = () => {
+    if (!speechSynthesisRef.current) return;
+
+    const text = articleData[selectedLevel as keyof typeof articleData]?.excerpt || '';
+
+    if (speechSynthesisRef.current.speaking) {
+      speechSynthesisRef.current.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    speechSynthesisRef.current.speak(utterance);
+  };
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -177,8 +202,11 @@ const Home = () => {
 
       {/* Article Display Section */}
       <Card className="mb-6">
-        <CardHeader>
+        <CardHeader className="flex items-center justify-between">
           <CardTitle>Challenge Article ({selectedLevel})</CardTitle>
+          <Button variant="ghost" size="icon" onClick={handleSpeak} aria-label="Read Article">
+            {isSpeaking ? <Pause/> : <Play/>}
+          </Button>
         </CardHeader>
         <CardContent>
           <p className="mb-4">{currentArticle?.excerpt}</p>
