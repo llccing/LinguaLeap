@@ -189,6 +189,13 @@ const Home = () => {
   const handleToggleInputMethod = () => {
     setIsVoiceInput(prev => !prev);
     setInputText(''); // Clear the input text when switching
+    if (recognitionRef.current) {
+      if (isRecording) {
+        recognitionRef.current.stop();
+      } else {
+        recognitionRef.current.start();
+      }
+    }
   };
 
   const startRecording = async () => {
