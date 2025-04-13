@@ -255,7 +255,7 @@ const Home = () => {
   };
 
   return (
-    <div className="container mx-auto py-10 px-4">
+    
       <Toaster/>
       <h1 className="text-3xl font-bold text-center mb-8">
         <span style={{color: '#A0D2EB'}}>Lingua</span>
@@ -299,7 +299,7 @@ const Home = () => {
         </CardHeader>
         <CardContent>
           <Button onClick={handlePronunciationAssessment} disabled={isAssessing}>
-            {isAssessing ? 'Assessing...' : 'Assess Pronunciation'}
+            {isAssessing ? 'Assess Pronunciation' : 'Assess Pronunciation'}
           </Button>
           {assessmentScore !== null && (
             <div className="mt-4">
@@ -427,16 +427,16 @@ const Home = () => {
           </CardHeader>
           <CardContent>
             {enhancedSentences.map((sentence, index) => (
-              <div key={index} className="mb-4">
+              
                 <Badge className="mr-2">{`Sentence ${index + 1}`}</Badge>
                 <p>{sentence}</p>
                 {index < enhancedSentences.length - 1 && <Separator/>}
-              </div>
+              
             ))}
           </CardContent>
         </Card>
       )}
-    </div>
+    
   );
 };
 
