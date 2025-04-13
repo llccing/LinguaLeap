@@ -9,6 +9,7 @@ import {Separator} from '@/components/ui/separator';
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Mic, Text, Pause} from 'lucide-react';
 import {useToast} from "@/hooks/use-toast";
+import ActionButtons from "@/app/components/ActionButtons";
 
 const InputAndImprovedText = () => {
   const [inputText, setInputText] = useState('');
@@ -161,96 +162,99 @@ const InputAndImprovedText = () => {
   const hasCorrections = correctedText !== '' && correctedText !== inputText;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Input Text Area */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Original Text</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="relative">
-            <Textarea
-              placeholder="Enter your English text here..."
-              value={inputText}
-              onChange={handleInputChange}
-              disabled={isVoiceInput}
-              className="bg-light-gray pr-12"
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleToggleInputMethod}
-              className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
-              aria-label="Toggle Input Method"
-            >
-              {isVoiceInput ? <Text/> : <Mic/>}
-            </Button>
-            {isVoiceInput && (
-              <div className="absolute bottom-2 right-2">
-                {isMediaRecording ? (
-                  <Button
-                    variant="destructive"
-                    size="icon"
-                    onClick={stopRecording}
-                    aria-label="Stop Recording"
-                  >
-                    <Pause/>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={startRecording}
-                    aria-label="Start Recording"
-                  >
-                    <Mic/>
-                  </Button>
-                )}
-              </div>
-            )}
-          </div>
-          {/* Audio Playback */}
-          {audioUrl && (
-            <div className="mt-4">
-              <audio controls src={audioUrl} ref={audioRef}>
-                Your browser does not support the audio element.
-              </audio>
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Input Text Area */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Original Text</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative">
+              <Textarea
+                placeholder="Enter your English text here..."
+                value={inputText}
+                onChange={handleInputChange}
+                disabled={isVoiceInput}
+                className="bg-light-gray pr-12"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleInputMethod}
+                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                aria-label="Toggle Input Method"
+              >
+                {isVoiceInput ? <Text/> : <Mic/>}
+              </Button>
+              {isVoiceInput && (
+                <div className="absolute bottom-2 right-2">
+                  {isMediaRecording ? (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={stopRecording}
+                      aria-label="Stop Recording"
+                    >
+                      <Pause/>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={startRecording}
+                      aria-label="Start Recording"
+                    >
+                      <Mic/>
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Improved Text Area */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Improved Text</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ScrollArea className="h-[300px] md:h-auto">
-            {hasCorrections ? (
-              <div>
-                {/* Display with Highlighted Changes */}
-                <p>
-                  {correctedText.split(' ').map((word, index) => {
-                    if (inputText.split(' ').includes(word)) {
-                      return <span key={index}>{word} </span>;
-                    } else {
-                      return (
-                        <span key={index} className="font-semibold text-teal-500">
-                          {word}{' '}
-                        </span>
-                      );
-                    }
-                  })}
-                </p>
+            {/* Audio Playback */}
+            {audioUrl && (
+              <div className="mt-4">
+                <audio controls src={audioUrl} ref={audioRef}>
+                  Your browser does not support the audio element.
+                </audio>
               </div>
-            ) : (
-              <p>No corrections available yet. Please input text and click the "Check Grammar" button.</p>
             )}
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+
+        {/* Improved Text Area */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Improved Text</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[300px] md:h-auto">
+              {hasCorrections ? (
+                <div>
+                  {/* Display with Highlighted Changes */}
+                  <p>
+                    {correctedText.split(' ').map((word, index) => {
+                      if (inputText.split(' ').includes(word)) {
+                        return <span key={index}>{word} </span>;
+                      } else {
+                        return (
+                          <span key={index} className="font-semibold text-teal-500">
+                            {word}{' '}
+                          </span>
+                        );
+                      }
+                    })}
+                  </p>
+                </div>
+              ) : (
+                <p>No corrections available yet. Please input text and click the "Check Grammar" button.</p>
+              )}
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      </div>
+      <ActionButtons inputText={inputText}/>
+    </>
   );
 };
 

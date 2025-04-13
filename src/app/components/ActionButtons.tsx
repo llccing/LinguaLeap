@@ -13,10 +13,9 @@ interface ActionButtonsProps {
   inputText: string;
 }
 
-const ActionButtons = () => {
+const ActionButtons = ({inputText}: ActionButtonsProps) => {
   const [clarityFeedback, setClarityFeedback] = useState('');
   const [enhancedSentences, setEnhancedSentences] = useState<string[]>([]);
-  const [inputText, setInputText] = useState('');
 
   const handleClarityCheck = useCallback(async () => {
     const result = await analyzeClarityAndCoherence({text: inputText});
