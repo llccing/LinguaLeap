@@ -33,8 +33,8 @@ const Home = () => {
 
       <PronunciationAssessment/>
 
-      <InputAndImprovedText onGrammarCheck={grammarCheck} />
-      <FeedbackDisplay inputText={inputText}/>
+      {/* <InputAndImprovedText onGrammarCheck={grammarCheck} />
+      <FeedbackDisplay inputText={inputText}/> */}
     </div>
   );
 };
