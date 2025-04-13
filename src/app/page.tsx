@@ -57,6 +57,10 @@ const Home = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const speechSynthesisRef = useRef<SpeechSynthesis | null>(null);
 
+  // State for pronunciation assessment
+  const [assessmentScore, setAssessmentScore] = useState<number | null>(null);
+  const [isAssessing, setIsAssessing] = useState(false);
+
   useEffect(() => {
     speechSynthesisRef.current = window.speechSynthesis;
   }, []);
@@ -201,6 +205,15 @@ const Home = () => {
 
   const currentArticle = articleData[selectedLevel as keyof typeof articleData];
 
+  // Placeholder for pronunciation assessment
+  const handlePronunciationAssessment = async () => {
+    setIsAssessing(true);
+    // Simulate assessment delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setAssessmentScore(Math.floor(Math.random() * 100)); // Generate a random score
+    setIsAssessing(false);
+  };
+
   return (
     <div className="container mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-center mb-8">
@@ -235,6 +248,23 @@ const Home = () => {
               ))}
             </select>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Pronunciation Assessment Section */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Pronunciation Assessment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handlePronunciationAssessment} disabled={isAssessing}>
+            {isAssessing ? 'Assessing...' : 'Assess Pronunciation'}
+          </Button>
+          {assessmentScore !== null && (
+            <div className="mt-4">
+              <p>Pronunciation Score: {assessmentScore}/100</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
