@@ -61,6 +61,12 @@ const Home = () => {
   const [assessmentScore, setAssessmentScore] = useState<number | null>(null);
   const [isAssessing, setIsAssessing] = useState(false);
 
+  // State and refs for media recording
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
   useEffect(() => {
     speechSynthesisRef.current = window.speechSynthesis;
   }, []);
@@ -185,15 +191,42 @@ const Home = () => {
     setInputText(''); // Clear the input text when switching
   };
 
-  const startRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.start();
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+
+      setMediaRecorder(recorder);
+      setAudioChunks([]); // Clear previous audio chunks
+      setAudioUrl(null); // Revoke previous audio URL if it exists
+
+      recorder.ondataavailable = (event) => {
+        setAudioChunks((prev) => [...prev, event.data]);
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error starting media recording:', error);
+      toast({
+        title: 'Recording Error',
+        description: 'Failed to start recording. Please check microphone permissions.',
+        variant: 'destructive',
+      });
+      setIsRecording(false);
     }
   };
 
   const stopRecording = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
     }
   };
 
@@ -216,6 +249,7 @@ const Home = () => {
 
   return (
     <div className="container mx-auto py-10 px-4">
+      <Toaster/>
       <h1 className="text-3xl font-bold text-center mb-8">
         <span style={{color: '#A0D2EB'}}>Lingua</span>
         <span style={{color: '#008080'}}>Leap</span>
@@ -316,6 +350,14 @@ const Home = () => {
                 </div>
               )}
             </div>
+            {/* Audio Playback */}
+            {audioUrl && (
+              <div className="mt-4">
+                <audio controls src={audioUrl} ref={audioRef}>
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -387,7 +429,6 @@ const Home = () => {
           </CardContent>
         </Card>
       )}
-      <Toaster/>
     </div>
   );
 };
