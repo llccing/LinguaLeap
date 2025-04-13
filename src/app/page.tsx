@@ -200,7 +200,7 @@ const Home = () => {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
       const recorder = new MediaRecorder(stream);
 
       setMediaRecorder(recorder);
@@ -212,9 +212,10 @@ const Home = () => {
       };
 
       recorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const audioBlob = new Blob(audioChunks, {type: 'audio/webm'});
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
+        stream.getTracks().forEach(track => track.stop());
       };
 
       recorder.start();
@@ -255,7 +256,7 @@ const Home = () => {
   };
 
   return (
-    
+    <>
       <Toaster/>
       <h1 className="text-3xl font-bold text-center mb-8">
         <span style={{color: '#A0D2EB'}}>Lingua</span>
@@ -427,16 +428,16 @@ const Home = () => {
           </CardHeader>
           <CardContent>
             {enhancedSentences.map((sentence, index) => (
-              
+              <div key={index}>
                 <Badge className="mr-2">{`Sentence ${index + 1}`}</Badge>
                 <p>{sentence}</p>
                 {index < enhancedSentences.length - 1 && <Separator/>}
-              
+              </div>
             ))}
           </CardContent>
         </Card>
       )}
-    
+    </>
   );
 };
 
