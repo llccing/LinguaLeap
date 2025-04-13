@@ -1,7 +1,6 @@
-
 'use client';
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import {Textarea} from '@/components/ui/textarea';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -12,12 +11,82 @@ import {Separator} from '@/components/ui/separator';
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {Badge} from "@/components/ui/badge";
 import {cn} from "@/lib/utils";
+import {useToast} from "@/hooks/use-toast";
+import {Toaster} from "@/components/ui/toaster";
+import {Mic, Text, Pause} from 'lucide-react';
 
 const Home = () => {
   const [inputText, setInputText] = useState('');
   const [correctedText, setCorrectedText] = useState('');
   const [clarityFeedback, setClarityFeedback] = useState('');
   const [enhancedSentences, setEnhancedSentences] = useState<string[]>([]);
+  const [isVoiceInput, setIsVoiceInput] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const {toast} = useToast();
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current!.continuous = true;
+      recognitionRef.current!.interimResults = true;
+
+      recognitionRef.current!.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            setInputText(prevText => prevText + event.results[i][0].transcript);
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+      };
+
+      recognitionRef.current!.onstart = () => {
+        setIsRecording(true);
+        toast({
+          title: 'Voice Input Started',
+          description: 'Speak now, and your words will be converted to text.',
+        });
+      };
+
+      recognitionRef.current!.onend = () => {
+        setIsRecording(false);
+        toast({
+          title: 'Voice Input Ended',
+          description: 'Voice input has been stopped.',
+        });
+      };
+
+      recognitionRef.current!.onerror = (event: SpeechRecognitionErrorEvent) => {
+        setIsRecording(false);
+        console.error('Speech recognition error:', event.error);
+        toast({
+          title: 'Voice Input Error',
+          description: `An error occurred during voice input: ${event.error}`,
+          variant: 'destructive',
+        });
+      };
+
+    } else {
+      console.warn('Speech Recognition API not supported in this browser.');
+      toast({
+        title: 'Voice Input Not Supported',
+        description: 'Your browser does not support the Speech Recognition API.',
+        variant: 'destructive',
+      });
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.onerror = null;
+      }
+    };
+  }, [toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
@@ -44,6 +113,23 @@ const Home = () => {
     setEnhancedSentences(enhanced);
   }, [inputText]);
 
+  const handleToggleInputMethod = () => {
+    setIsVoiceInput(prev => !prev);
+    setInputText(''); // Clear the input text when switching
+  };
+
+  const startRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+  };
+
   const hasCorrections = correctedText !== '' && correctedText !== inputText;
 
   return (
@@ -60,12 +146,47 @@ const Home = () => {
             <CardTitle>Original Text</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              placeholder="Enter your English text here..."
-              value={inputText}
-              onChange={handleInputChange}
-              className="bg-light-gray"
-            />
+            <div className="relative">
+              <Textarea
+                placeholder="Enter your English text here..."
+                value={inputText}
+                onChange={handleInputChange}
+                disabled={isVoiceInput}
+                className="bg-light-gray pr-12"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleInputMethod}
+                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                aria-label="Toggle Input Method"
+              >
+                {isVoiceInput ? <Text/> : <Mic/>}
+              </Button>
+              {isVoiceInput && (
+                <div className="absolute bottom-2 right-2">
+                  {isRecording ? (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={stopRecording}
+                      aria-label="Stop Recording"
+                    >
+                      <Pause/>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={startRecording}
+                      aria-label="Start Recording"
+                    >
+                      <Mic/>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -76,27 +197,27 @@ const Home = () => {
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[300px] md:h-auto">
-            {hasCorrections ? (
-              <div>
-                {/* Display with Highlighted Changes */}
-                <p>
-                  {correctedText.split(' ').map((word, index) => {
-                    if (inputText.split(' ').includes(word)) {
-                      return <span key={index}>{word} </span>;
-                    } else {
-                      return (
-                        <span key={index} className="font-semibold text-teal-500">
-                          {word}{' '}
-                        </span>
-                      );
-                    }
-                  })}
-                </p>
-              </div>
-            ) : (
-              <p>No corrections available yet. Please input text and click the "Check Grammar" button.</p>
-            )}
-             </ScrollArea>
+              {hasCorrections ? (
+                <div>
+                  {/* Display with Highlighted Changes */}
+                  <p>
+                    {correctedText.split(' ').map((word, index) => {
+                      if (inputText.split(' ').includes(word)) {
+                        return <span key={index}>{word} </span>;
+                      } else {
+                        return (
+                          <span key={index} className="font-semibold text-teal-500">
+                            {word}{' '}
+                          </span>
+                        );
+                      }
+                    })}
+                  </p>
+                </div>
+              ) : (
+                <p>No corrections available yet. Please input text and click the "Check Grammar" button.</p>
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
       </div>
@@ -131,7 +252,7 @@ const Home = () => {
               <div key={index} className="mb-4">
                 <Badge className="mr-2">{`Sentence ${index + 1}`}</Badge>
                 <p>{sentence}</p>
-                {index < enhancedSentences.length - 1 && <Separator />}
+                {index < enhancedSentences.length - 1 && <Separator/>}
               </div>
             ))}
           </CardContent>
@@ -141,43 +262,5 @@ const Home = () => {
     </div>
   );
 };
-
-import {
-  useToast,
-  TOAST_LIMIT,
-  TOAST_REMOVE_DELAY
-} from "@/hooks/use-toast"
-import {
-  Toast,
-  ToastClose,
-  ToastDescription,
-  ToastProvider,
-  ToastTitle,
-  ToastViewport,
-} from "@/components/ui/toast"
-
-export function Toaster() {
-  const { toasts } = useToast()
-
-  return (
-    <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
-        return (
-          <Toast key={id} {...props}>
-            <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
-              )}
-            </div>
-            {action}
-            <ToastClose />
-          </Toast>
-        )
-      })}
-      <ToastViewport />
-    </ToastProvider>
-  )
-}
 
 export default Home;
